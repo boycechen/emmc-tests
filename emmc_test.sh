@@ -122,7 +122,7 @@ run_tests() {
 
     for id in "${ids[@]}"; do
         id=$(echo "${id}" | xargs)  # trim
-        echo -e "\n${C_TITLE}═══════ 运行: ${id} — ${TEST_MAP[$id]} ═══════${C_RESET}"
+        echo -e "\n${C_PROGRESS}▶ 运行: ${id} — ${TEST_MAP[$id]}${C_RESET}"
         run_single_test "${id}"
     done
     summary
@@ -140,7 +140,7 @@ run_all() {
     reset_test_tracking
 
     for id in "${TEST_IDS[@]}"; do
-        echo -e "\n${C_TITLE}═══════ [${id}] ${TEST_MAP[$id]} ═══════${C_RESET}"
+        echo -e "\n${C_PROGRESS}▶ [${id}] ${TEST_MAP[$id]}${C_RESET}"
         run_single_test "${id}"
     done
     summary
@@ -189,7 +189,7 @@ interactive_menu() {
             *)
                 if [[ "${choice}" =~ ^[0-9]+$ ]] && [ "${choice}" -ge 1 ] && [ "${choice}" -le "${#TEST_IDS[@]}" ]; then
                     local id="${TEST_IDS[$((choice-1))]}"
-                    echo -e "\n${C_TITLE}═══════ 运行: ${id} — ${TEST_MAP[$id]} ═══════${C_RESET}"
+                    echo -e "\n${C_PROGRESS}▶ 运行: ${id} — ${TEST_MAP[$id]}${C_RESET}"
                     run_single_test "${id}"
                     summary
                     echo -e "\n${C_PROMPT}按回车返回菜单...${C_RESET}"

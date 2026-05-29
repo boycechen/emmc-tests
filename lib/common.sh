@@ -15,9 +15,26 @@ declare -A _TR_FAIL   # test_id -> fail count
 declare -A _TR_WARN   # test_id -> warn count
 declare -a _TR_ORDER  # ordered list of test ids run
 
+# ─── 全宽居中标题 ──────────────────────────────────────────────
+# 用法: center_line "文字" [颜色变量] [装饰字符]
+# 打印一行从终端左到右、文字居中的装饰线
+center_line() {
+    local text="${1}"
+    local color="${2:-${C_TITLE}}"
+    local deco="${3:-═}"
+    local cols
+    cols=$(tput cols 2>/dev/null || echo 80)
+    local sep
+    printf -v sep '%*s' "$cols" ''
+    sep="${sep// /$deco}"
+    local title_text=" ${text} "
+    local insert_pos=$(( (cols - ${#title_text}) / 2 ))
+    [ "$insert_pos" -lt 0 ] && insert_pos=0
+    echo -e "\n${color}${sep:0:insert_pos}${title_text}${sep:$((insert_pos + ${#title_text}))}${C_RESET}"
+}
+
 # ─── 输出函数 ──────────────────────────────────────────────────
-title()   { echo -e "\n${C_TITLE}══════ ${1} ══════${C_RESET}"
-            echo -e "\n========== ${1} ==========" >> "${LOGDIR}/results.log"; }
+title()   { center_line "${1}"; echo -e "========== ${1} ==========" >> "${LOGDIR}/results.log"; }
 step()    { echo -e "\n${C_STEP}${ICON_STEP} ${1}${C_RESET}"; }
 
 pass()    { echo -e "  ${C_PASS}${ICON_PASS} PASS${C_RESET}  ${1}"
@@ -186,7 +203,7 @@ summary() {
         summary_legacy; return
     }
 
-    echo -e "\n${C_TITLE}══ 测试结果汇总报告 ══${C_RESET}"
+    center_line "测试结果汇总报告"
 
     echo -e "\n${C_INFO}设备: ${EMMC_DEV}  (${DEVICE_SIZE_GB}GB)${C_RESET}"
     echo -e "${C_INFO}日志: ${LOGDIR}${C_RESET}"
@@ -303,7 +320,7 @@ summary() {
 
 # ─── 旧版摘要 (兼容单次运行) ──────────────────────────────────
 summary_legacy() {
-    echo -e "\n${C_TITLE}══ 测试总结 ══${C_RESET}"
+    center_line "测试总结"
     echo -e "\n${C_PROGRESS}设备: ${EMMC_DEV}${C_RESET}"
     echo -e "${C_PROGRESS}日志: ${LOGDIR}${C_RESET}"
     echo ""
