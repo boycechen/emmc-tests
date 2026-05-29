@@ -54,27 +54,45 @@ discover_tests() {
     done
 }
 
+# ─── 辅助: 计算字符串可视宽度 ──────────────────────────────────
+vis_width() {
+    local text="$1"
+    local vis=0 i=0 len=${#text}
+    while (( i < len )); do
+        local c="${text:$i:1}"
+        if (( $(printf '%d' "'$c" 2>/dev/null) > 127 )); then
+            ((vis += 2))
+        else
+            ((vis++))
+        fi
+        ((i++))
+    done
+    echo "$vis"
+}
+
 # ─── 列出测试 ────────────────────────────────────────────────
 list_tests() {
-    echo -e "\n${C_TITLE}可用测试项目:${C_RESET}"
+    echo -e "\\n${C_TITLE}可用测试项目:${C_RESET}"
     echo -e "${C_INFO}────────────────────────────────────────────────${C_RESET}"
+
+    # 第一遍: 找出最长名称的可视宽度
+    local max_vis=0
     for id in "${TEST_IDS[@]}"; do
-        # 将名称补齐到固定可视宽度(30列)，保证描述列起点一致
         local name="${TEST_MAP[$id]}"
-        local vis=0 i=0 len=${#name}
-        while (( i < len )); do
-            local c="${name:$i:1}"
-            if (( $(printf '%d' "'$c" 2>/dev/null) > 127 )); then
-                ((vis += 2))
-            else
-                ((vis++))
-            fi
-            ((i++))
-        done
-        local pad=$((30 - vis))
+        local v=$(vis_width "$name")
+        (( v > max_vis )) && max_vis=$v
+    done
+    local target=$((max_vis + 2))  # 名称列宽度 = 最长名称 + 2 列余量
+
+    # 第二遍: 输出, 所有描述列从同一列开始
+    for id in "${TEST_IDS[@]}"; do
+        local name="${TEST_MAP[$id]}"
+        local desc="${TEST_DESC_MAP[$id]}"
+        local v=$(vis_width "$name")
+        local pad=$((target - v))
         (( pad > 0 )) && printf -v spaces '%*s' "$pad" '' || spaces=""
-        printf "  ${C_STEP}%-6s${C_RESET} %s${spaces} ${C_INFO}%s${C_RESET}\n" \
-            "${id}" "${name}" "${TEST_DESC_MAP[$id]}"
+        printf "  ${C_STEP}%-6s${C_RESET} %s${spaces} ${C_INFO}%s${C_RESET}\\n" \
+            "${id}" "${name}" "${desc}"
     done
     echo -e "${C_INFO}────────────────────────────────────────────────${C_RESET}"
     echo -e "  ${C_STEP}--run-all${C_RESET}  运行全部测试"
