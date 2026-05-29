@@ -130,7 +130,8 @@ run_tests() {
 
 # ─── 运行全部 ────────────────────────────────────────────────
 run_all() {
-    echo -e "\n${C_TITLE}═══════ 全自动运行模式 ═══════${C_RESET}"
+    full_line "${C_TITLE}" "═"
+    center_text "全自动运行模式" "${C_TITLE}"
     echo -e "${C_WARN}所有测试将按顺序运行, 预计耗时: 60-90 分钟${C_RESET}"
     echo -e "${C_WARN}(设置 DURATION_LONG=600 可缩短长时间测试时长)${C_RESET}"
 
