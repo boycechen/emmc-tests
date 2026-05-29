@@ -15,6 +15,19 @@ declare -A _TR_FAIL   # test_id -> fail count
 declare -A _TR_WARN   # test_id -> warn count
 declare -a _TR_ORDER  # ordered list of test ids run
 
+# ─── 全宽装饰线 ──────────────────────────────────────────────────
+# 用法: full_line [颜色变量] [装饰字符]
+full_line() {
+    local color="${1:-${C_TITLE}}"
+    local deco="${2:-═}"
+    local cols
+    cols=$(tput cols 2>/dev/null || echo 80)
+    local sep
+    printf -v sep '%*s' "$cols" ''
+    sep="${sep// /$deco}"
+    echo -e "${color}${sep}${C_RESET}"
+}
+
 # ─── 全宽居中标题 ──────────────────────────────────────────────
 # 用法: center_line "文字" [颜色变量] [装饰字符]
 # 打印一行从终端左到右、文字居中的装饰线

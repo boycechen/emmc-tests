@@ -8,8 +8,10 @@ DEVICE_SIZE_BYTES=0
 
 select_device() {
     clear
-    center_line "eMMC Deep Stress Test Suite v3.0" "" ""
-    center_line "模块化 · 可扩展 · fio 驱动" "${C_INFO}" "─"
+    full_line "${C_TITLE}" "═"
+    echo -e "${C_TITLE}  eMMC Deep Stress Test Suite v3.0${C_RESET}"
+    full_line "${C_INFO}" "─"
+    echo -e "  ${C_INFO}模块化 · 可扩展 · fio 驱动${C_RESET}"
 
     echo -e "\n${C_INFO}已检测: fio=${HAS_FIO} mmc-utils=${HAS_MMC_UTILS}${C_RESET}"
     [ "${HAS_MMC_UTILS}" = false ] && \
