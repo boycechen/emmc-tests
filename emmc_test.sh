@@ -59,8 +59,22 @@ list_tests() {
     echo -e "\n${C_TITLE}可用测试项目:${C_RESET}"
     echo -e "${C_INFO}────────────────────────────────────────────────${C_RESET}"
     for id in "${TEST_IDS[@]}"; do
-        echo -e "  ${C_STEP}${id}${C_RESET}  ${TEST_MAP[$id]}"
-        echo -e "       ${C_INFO}${TEST_DESC_MAP[$id]}${C_RESET}"
+        # 将名称补齐到固定可视宽度(30列)，保证描述列起点一致
+        local name="${TEST_MAP[$id]}"
+        local vis=0 i=0 len=${#name}
+        while (( i < len )); do
+            local c="${name:$i:1}"
+            if (( $(printf '%d' "'$c" 2>/dev/null) > 127 )); then
+                ((vis += 2))
+            else
+                ((vis++))
+            fi
+            ((i++))
+        done
+        local pad=$((30 - vis))
+        (( pad > 0 )) && printf -v spaces '%*s' "$pad" '' || spaces=""
+        printf "  ${C_STEP}%-6s${C_RESET} %s${spaces} ${C_INFO}%s${C_RESET}\n" \
+            "${id}" "${name}" "${TEST_DESC_MAP[$id]}"
     done
     echo -e "${C_INFO}────────────────────────────────────────────────${C_RESET}"
     echo -e "  ${C_STEP}--run-all${C_RESET}  运行全部测试"
