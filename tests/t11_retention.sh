@@ -41,9 +41,7 @@ SHA256: ${sha}
 #   dd if=${EMMC_DEV} bs=1M count=1024 iflag=direct | sha256sum
 EOF
 
-    echo -e "\n${C_WARN}┌─────────────────────────────────────────────────────┐${C_RESET}"
-    echo -e "${C_WARN}│  断电后验证:                                        │${C_RESET}"
-    echo -e "${C_WARN}│  dd if=${EMMC_DEV} bs=1M count=1024 iflag=direct | md5sum${C_RESET}"
-    echo -e "${C_WARN}│  预期 MD5: ${md5}${C_RESET}"
-    echo -e "${C_WARN}└─────────────────────────────────────────────────────┘${C_RESET}"
+    echo -e "\n${C_WARN}⚠ 断电后验证:${C_RESET}"
+    echo -e "${C_WARN}  dd if=${EMMC_DEV} bs=1M count=1024 iflag=direct | md5sum${C_RESET}"
+    echo -e "${C_WARN}  预期 MD5: ${md5}${C_RESET}"
 }

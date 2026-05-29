@@ -16,9 +16,7 @@ declare -A _TR_WARN   # test_id -> warn count
 declare -a _TR_ORDER  # ordered list of test ids run
 
 # ─── 输出函数 ──────────────────────────────────────────────────
-title()   { echo -e "\n${C_TITLE}╔══════════════════════════════════════════════════╗${C_RESET}"
-            echo -e "${C_TITLE}║  ${1}${C_RESET}"
-            echo -e "${C_TITLE}╚══════════════════════════════════════════════════╝${C_RESET}"
+title()   { echo -e "\n${C_TITLE}══════ ${1} ══════${C_RESET}"
             echo -e "\n========== ${1} ==========" >> "${LOGDIR}/results.log"; }
 step()    { echo -e "\n${C_STEP}${ICON_STEP} ${1}${C_RESET}"; }
 
@@ -188,18 +186,15 @@ summary() {
         summary_legacy; return
     }
 
-    echo -e "\n${C_TITLE}╔═══════════════════════════════════════════════════════════════╗${C_RESET}"
-    echo -e "${C_TITLE}║                   测试结果汇总报告                           ║${C_RESET}"
-    echo -e "${C_TITLE}╚═══════════════════════════════════════════════════════════════╝${C_RESET}"
+    echo -e "\n${C_TITLE}══ 测试结果汇总报告 ══${C_RESET}"
 
     echo -e "\n${C_INFO}设备: ${EMMC_DEV}  (${DEVICE_SIZE_GB}GB)${C_RESET}"
     echo -e "${C_INFO}日志: ${LOGDIR}${C_RESET}"
 
-    # 表格头
+    # 表头
     echo ""
-    echo -e "${C_TITLE}┌──────┬──────────────────────────────────────┬────────┬──────┬──────────┐${C_RESET}"
-    echo -e "${C_TITLE}│${C_RESET} ID    ${C_TITLE}│${C_RESET} 测试名称                              ${C_TITLE}│${C_RESET} 时长   ${C_TITLE}│${C_RESET} P/F/W${C_TITLE}│${C_RESET} 结果     ${C_TITLE}│${C_RESET}"
-    echo -e "${C_TITLE}├──────┼──────────────────────────────────────┼────────┼──────┼──────────┤${C_RESET}"
+    echo -e "${C_TITLE} ID    ${C_STEP}│${C_RESET} 测试名称                              ${C_STEP}│${C_RESET} 时长   ${C_STEP}│${C_RESET} P/F/W ${C_STEP}│${C_RESET} 结果${C_RESET}"
+    echo -e "${C_TITLE}──${C_STEP}──${C_RESET}───${C_STEP}┼${C_RESET}───────────────────────────────────────${C_STEP}┼${C_RESET}────────${C_STEP}┼${C_RESET}──────${C_STEP}┼${C_RESET}──────────${C_RESET}"
 
     for id in "${_TR_ORDER[@]}"; do
         local name="${TEST_MAP[${id}]:-${id}}"
@@ -219,19 +214,19 @@ summary() {
         total_warn=$((total_warn + w))
 
         # ── 分开输出: 纯文本列用 printf(宽度准确), 着色列用 echo(不受ANSI干扰) ──
-        printf "${C_STEP}│${C_RESET} %-4s ${C_STEP}│${C_RESET} %-36s ${C_STEP}│${C_RESET} %6s ${C_STEP}│${C_RESET} " \
+        printf " %-4s ${C_STEP}│${C_RESET} %-36s ${C_STEP}│${C_RESET} %6s ${C_STEP}│${C_RESET} " \
             "${id}" "${display_name}" "${time_str}"
 
         # P/F/W 列 (着色)
         echo -ne "${C_PASS}${p}${C_RESET} ${C_FAIL}${f}${C_RESET} ${C_WARN}${w}${C_RESET} "
 
-        # 结果列: 先填充到固定8字符宽度再着色, 确保表格对齐
+        # 结果列
         local padded_result="$(printf "%-8s" "${result}")"
         local colored_padded=$(result_color "${padded_result}")
-        echo -e "${C_STEP}│${C_RESET} ${colored_padded} ${C_STEP}│${C_RESET}"
+        echo -e " ${C_STEP}│${C_RESET} ${colored_padded}"
     done
 
-    echo -e "${C_TITLE}├──────┼──────────────────────────────────────┼────────┼──────┼──────────┤${C_RESET}"
+    echo -e "${C_TITLE}──${C_STEP}──${C_RESET}───${C_STEP}┼${C_RESET}───────────────────────────────────────${C_STEP}┼${C_RESET}────────${C_STEP}┼${C_RESET}──────${C_STEP}┼${C_RESET}──────────${C_RESET}"
 
     # 汇总行
     local total_time_str=$(fmt_duration "${total_duration}")
@@ -240,14 +235,12 @@ summary() {
     [ "${total_fail}" -eq 0 ] && [ "${total_warn}" -gt 0 ] && overall_result="WARN"
 
     # 同样分开输出避免 ANSI 干扰对齐
-    printf "${C_STEP}│${C_RESET} ${C_PROGRESS}合计${C_RESET}  ${C_STEP}│${C_RESET} %-36s ${C_STEP}│${C_RESET} %6s ${C_STEP}│${C_RESET} " \
-        "${#_TR_ORDER[@]} 项测试" "${total_time_str}"
+    printf " %-5s ${C_STEP}│${C_RESET} %-36s ${C_STEP}│${C_RESET} %6s ${C_STEP}│${C_RESET} " \
+        "${C_PROGRESS}合计${C_RESET}" "${#_TR_ORDER[@]} 项测试" "${total_time_str}"
     echo -ne "${C_PASS}${total_pass}${C_RESET} ${C_FAIL}${total_fail}${C_RESET} ${C_WARN}${total_warn}${C_RESET} "
     local padded_overall="$(printf "%-8s" "${overall_result}")"
     local colored_overall=$(result_color "${padded_overall}")
-    echo -e "${C_STEP}│${C_RESET} ${colored_overall} ${C_STEP}│${C_RESET}"
-
-    echo -e "${C_TITLE}└──────┴──────────────────────────────────────┴────────┴──────┴──────────┘${C_RESET}"
+    echo -e " ${C_STEP}│${C_RESET} ${colored_overall}"
 
     echo "" >> "${LOGDIR}/results.log"
     echo "===== 详细结果表 =====" >> "${LOGDIR}/results.log"
@@ -265,17 +258,11 @@ summary() {
     # 总体评价
     echo ""
     if [ "${total_fail}" -eq 0 ] && [ "${total_warn}" -eq 0 ]; then
-        echo -e "${C_PASS}┌────────────────────────────────────────────────────────────┐${C_RESET}"
-        echo -e "${C_PASS}│  🎉 全部 ${#_TR_ORDER[@]} 项测试通过! eMMC 健康状态良好    ${total_time_str}│${C_RESET}"
-        echo -e "${C_PASS}└────────────────────────────────────────────────────────────┘${C_RESET}"
+        echo -e "${C_PASS}🎉 全部 ${#_TR_ORDER[@]} 项测试通过! eMMC 健康状态良好    ${total_time_str}${C_RESET}"
     elif [ "${total_fail}" -eq 0 ]; then
-        echo -e "${C_WARN}┌────────────────────────────────────────────────────────────┐${C_RESET}"
-        echo -e "${C_WARN}│  ⚠  测试完成, ${total_warn} 项警告, 建议查看日志            ${total_time_str}│${C_RESET}"
-        echo -e "${C_WARN}└────────────────────────────────────────────────────────────┘${C_RESET}"
+        echo -e "${C_WARN}⚠  测试完成, ${total_warn} 项警告, 建议查看日志            ${total_time_str}${C_RESET}"
     else
-        echo -e "${C_FAIL}┌────────────────────────────────────────────────────────────┐${C_RESET}"
-        echo -e "${C_FAIL}│  ✘  ${total_fail} 项失败! 日志: ${LOGDIR}/results.log     ${total_time_str}│${C_RESET}"
-        echo -e "${C_FAIL}└────────────────────────────────────────────────────────────┘${C_RESET}"
+        echo -e "${C_FAIL}✘  ${total_fail} 项失败! 日志: ${LOGDIR}/results.log     ${total_time_str}${C_RESET}"
     fi
 
     # 关键信息提取 (T7 延迟 / T10 性能基线 / T1 寿命)
@@ -316,9 +303,7 @@ summary() {
 
 # ─── 旧版摘要 (兼容单次运行) ──────────────────────────────────
 summary_legacy() {
-    echo -e "\n${C_TITLE}╔══════════════════════════════════════════════════╗${C_RESET}"
-    echo -e "${C_TITLE}║  测试总结                                        ║${C_RESET}"
-    echo -e "${C_TITLE}╚══════════════════════════════════════════════════╝${C_RESET}"
+    echo -e "\n${C_TITLE}══ 测试总结 ══${C_RESET}"
     echo -e "\n${C_PROGRESS}设备: ${EMMC_DEV}${C_RESET}"
     echo -e "${C_PROGRESS}日志: ${LOGDIR}${C_RESET}"
     echo ""
@@ -330,17 +315,11 @@ summary_legacy() {
     echo "PASS=${PASS} FAIL=${FAIL} WARN=${WARN} TOTAL=${TOTAL}" >> "${LOGDIR}/results.log"
     echo "Ended: $(date)" >> "${LOGDIR}/results.log"
     if [ "${FAIL}" -eq 0 ] && [ "${WARN}" -eq 0 ]; then
-        echo -e "\n${C_PASS}┌─────────────────────────────────────────────┐${C_RESET}"
-        echo -e "${C_PASS}│  🎉 测试通过! eMMC 健康状态良好             │${C_RESET}"
-        echo -e "${C_PASS}└─────────────────────────────────────────────┘${C_RESET}"
+        echo -e "\n${C_PASS}🎉 测试通过! eMMC 健康状态良好${C_RESET}"
     elif [ "${FAIL}" -eq 0 ]; then
-        echo -e "\n${C_WARN}┌─────────────────────────────────────────────┐${C_RESET}"
-        echo -e "${C_WARN}│  ⚠ 通过但有 ${WARN} 项警告                     │${C_RESET}"
-        echo -e "${C_WARN}└─────────────────────────────────────────────┘${C_RESET}"
+        echo -e "\n${C_WARN}⚠ 通过但有 ${WARN} 项警告${C_RESET}"
     else
-        echo -e "\n${C_FAIL}┌─────────────────────────────────────────────┐${C_RESET}"
-        echo -e "${C_FAIL}│  ✘ ${FAIL} 项失败! 详情: ${LOGDIR}/results.log  │${C_RESET}"
-        echo -e "${C_FAIL}└─────────────────────────────────────────────┘${C_RESET}"
+        echo -e "\n${C_FAIL}✘ ${FAIL} 项失败! 详情: ${LOGDIR}/results.log${C_RESET}"
     fi
 }
 

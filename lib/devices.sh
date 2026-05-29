@@ -8,12 +8,10 @@ DEVICE_SIZE_BYTES=0
 
 select_device() {
     clear
-    echo -e "${C_TITLE}"
-    echo "╔══════════════════════════════════════════════════╗"
-    echo "║  eMMC Deep Stress Test Suite v3.0               ║"
-    echo "║  模块化 · 可扩展 · fio 驱动                     ║"
-    echo "╚══════════════════════════════════════════════════╝"
-    echo -e "${C_RESET}"
+    echo -e "${C_TITLE}══════════════════════════════════════════════════${C_RESET}"
+    echo -e "${C_TITLE}  eMMC Deep Stress Test Suite v3.0${C_RESET}"
+    echo -e "${C_TITLE}  模块化 · 可扩展 · fio 驱动${C_RESET}"
+    echo -e "${C_TITLE}══════════════════════════════════════════════════${C_RESET}"
 
     echo -e "\n${C_INFO}已检测: fio=${HAS_FIO} mmc-utils=${HAS_MMC_UTILS}${C_RESET}"
     [ "${HAS_MMC_UTILS}" = false ] && \
@@ -78,10 +76,8 @@ select_device() {
     # init_logdir 不在这里调用, 避免与 main() 重复
 
     # 危险确认
-    echo -e "\n${C_FAIL}╔══════════════════════════════════════════════════╗${C_RESET}"
-    echo -e "${C_FAIL}║  警告: 测试会向 ${EMMC_DEV} 写入大量数据  ║${C_RESET}"
-    echo -e "${C_FAIL}║  覆盖 0~20GB, 会破坏已有数据!                   ║${C_RESET}"
-    echo -e "${C_FAIL}╚══════════════════════════════════════════════════╝${C_RESET}"
+    echo -e "\n${C_FAIL}⚠ 警告: 测试会向 ${EMMC_DEV} 写入大量数据${C_RESET}"
+    echo -e "${C_FAIL}  覆盖 0~20GB, 会破坏已有数据!${C_RESET}"
     ask_yes "继续?" || { echo -e "${C_WARN}已取消${C_RESET}"; exit 0; }
 }
 
