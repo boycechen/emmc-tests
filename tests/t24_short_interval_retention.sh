@@ -77,21 +77,23 @@ run_test() {
 
     step "Test 24c: 热温数据保持 (写入后紧接大量读干扰)"
     local hot_file="${LOGDIR}/t24_hot_ref.dat"
+    local hot_offset=$((base_seek + 4 * 128))  # copy 4 之后 (44G+512M)
     dd if=/dev/urandom of="${hot_file}" bs=1M count=16 2>/dev/null
     local hot_md5=$(md5sum "${hot_file}" | awk '{print $1}')
 
-    dd if="${hot_file}" of="${EMMC_DEV}" bs=1M count=16 seek=0 oflag=direct 2>/dev/null
+    dd if="${hot_file}" of="${EMMC_DEV}" bs=1M count=16 seek="${hot_offset}" oflag=direct 2>/dev/null
     sync; echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
 
-    # 对相邻区域做大量读干扰
+    # 对相邻区域做大量读干扰 (hot_offset + 16M 处)
     progress "对相邻区域做 60s 高频读干扰..."
-    fio --name=t24_hotdisturb --filename="${EMMC_DEV}" --offset="44G+64M" --size=64M \
+    local disturb_offset=$((hot_offset + 16))
+    fio --name=t24_hotdisturb --filename="${EMMC_DEV}" --offset="${disturb_offset}M" --size=64M \
         --direct=1 --ioengine=libaio --iodepth=64 --rw=randread --bs=4k \
         --runtime=60 --time_based --output=/dev/null 2>/dev/null
 
     # 回读热温数据
     local hot_vfy="${LOGDIR}/t24_hot_vfy.dat"
-    dd if="${EMMC_DEV}" of="${hot_vfy}" bs=1M count=16 iflag=direct 2>/dev/null
+    dd if="${EMMC_DEV}" of="${hot_vfy}" bs=1M count=16 skip="${hot_offset}" iflag=direct 2>/dev/null
     local hot_actual=$(md5sum "${hot_vfy}" | awk '{print $1}')
 
     if [ "${hot_md5}" = "${hot_actual}" ]; then

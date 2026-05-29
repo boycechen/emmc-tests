@@ -17,8 +17,11 @@ run_test() {
     local target_size="64M"
     local runtime=900
 
-    # 确保设备容量足够
-    pct_check "T12" 27 || { warn "设备空间不足, 跳过 T12"; return; }
+    # 确保设备容量足够 (硬编码偏移 25G + 64M)
+    if [ "${DEVICE_SIZE_MB}" -gt 0 ] && [ "${DEVICE_SIZE_MB}" -lt 26000 ]; then
+        warn "设备仅 ${DEVICE_SIZE_MB}MB (<26GB), 不足以运行 T12 (需 25G+64M), 跳过"
+        return
+    fi
 
     step "初始写入参考数据 (64MB)"
     progress "写入到 offset=${target_offset}..."
