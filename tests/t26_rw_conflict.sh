@@ -13,8 +13,9 @@ run_test() {
     echo -e "${C_INFO}  原理: 写线程和读线程同时操作同一 LBA.${C_RESET}"
     echo -e "${C_INFO}  eMMC 应提供一致性保证: 读返回完整旧数据或完整新数据.${C_RESET}"
 
-    local conflict_offset="45G"
-    local conflict_size="1G"
+    local conflict_offset=$(pct_offset 50)
+    local conflict_size=$(pct_size 3)
+    pct_check "T26" 55 || { warn "设备空间不足, 跳过 T26"; return; }
 
     step "并发读写同一范围 (120s)"
     progress "使用 numjobs=2 (一个写、一个读) 竞争同一 LBA..."

@@ -14,9 +14,10 @@ run_test() {
     echo -e "${C_INFO}  原理: 持续写入直至观察到性能下降.${C_RESET}"
     echo -e "${C_INFO}  当 eMMC 内部需要频繁 GC 时, 写性能会下降, 说明 WAF 升高.${C_RESET}"
 
-    local waf_offset="42G"
-    local waf_size="4G"
+    local waf_offset=$(pct_offset 50)
     local record_file="${LOGDIR}/waf_performance.log"
+
+    pct_check "T23" 60 || { warn "设备空间不足, 跳过 T23"; return; }
 
     step "阶段写入 + 性能采样 (监测性能退化)"
     info "分 16 个阶段, 每阶段写 256MB, 记录性能变化"

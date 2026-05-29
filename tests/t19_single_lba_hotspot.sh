@@ -14,7 +14,8 @@ run_test() {
     echo -e "${C_INFO}  固件 bug 会导致重复写入同一物理块而快速磨损.${C_RESET}"
 
     local hot_lba="${EMMC_DEV}"
-    local offset="32G"
+    pct_check "T19" 51 || { warn "设备空间不足, 跳过 T19"; return; }
+    local offset=$(pct_offset 50)
     local iterations=20000
 
     step "单 LBA 反复写入 (${iterations} 次)"

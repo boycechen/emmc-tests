@@ -20,9 +20,11 @@ run_test() {
         return
     fi
 
-    local trim_offset=$((28 * 1024 * 1024 * 1024))  # 28GB 偏移, 字节单位
+    local trim_pct=50
+    local trim_offset=$((DEVICE_SIZE_MB * trim_pct / 100 * 1048576))  # 50% 偏移, 字节单位
     local trim_len=$((512 * 1024 * 1024))            # 512MB
-    local test_offset="28G"
+    local test_offset=$(pct_offset ${trim_pct})
+    pct_check "T14" $((trim_pct + 2)) || { warn "设备空间不足, 跳过 T14"; return; }
 
     # ── 测试前先确认设备支持 discard ──
     step "检查 discard 支持"

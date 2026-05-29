@@ -13,8 +13,9 @@ run_test() {
     echo -e "${C_INFO}  原理: 对 NAND Cell 写入后, 电荷会随时间缓慢泄露.${C_RESET}"
     echo -e "${C_INFO}  弱 Cell 在极短时间内就会产生位翻转 (数据保持错误).${C_RESET}"
 
-    local data_offset="44G"
-    local data_size="64M"
+    local data_pct=50
+
+    pct_check "T24" 55 || { warn "设备空间不足, 跳过 T24"; return; }
 
     step "Test 24a: 写入参考数据"
     local ref_file="${LOGDIR}/t24_ref.dat"
@@ -25,11 +26,10 @@ run_test() {
 
     # 写入 4 份相同数据到不同区域
     info "写入 4 份副本到不同区域 (等待时间递增验证)"
-    # 44G / 1M = 45056 块
-    local base_seek=$((44 * 1024))
+    local base_seek=$((DEVICE_SIZE_MB * data_pct / 100))
     for copy in 1 2 3 4; do
         local seek_val=$((base_seek + (copy-1) * 128))
-        local off_desc="${data_offset}+$(( (copy-1) * 128 ))M"
+        local off_desc="${base_seek}M+$(( (copy-1) * 128 ))M"
         dd if="${ref_file}" of="${EMMC_DEV}" bs=1M count=64 seek="${seek_val}" oflag=direct 2>/dev/null || {
             fail "副本 ${copy} 写入失败"; rm -f "${ref_file}"; return
         }
@@ -47,7 +47,7 @@ run_test() {
 
         # 每阶段读对应的副本: stage 1→copy 1, stage 2→copy 2, stage 3→copy 3
         local read_seek=$((base_seek + (stage-1) * 128))
-        local read_desc="${data_offset}+$(( (stage-1) * 128 ))M"
+        local read_desc="${base_seek}M+$(( (stage-1) * 128 ))M"
 
         step "Test 24b: 阶段 ${stage} — 写入后 ${interval}s 回读 (offset=${read_desc})"
         local vfy_file="${LOGDIR}/t24_vfy_${interval}s.dat"
@@ -77,7 +77,7 @@ run_test() {
 
     step "Test 24c: 热温数据保持 (写入后紧接大量读干扰)"
     local hot_file="${LOGDIR}/t24_hot_ref.dat"
-    local hot_offset=$((base_seek + 4 * 128))  # copy 4 之后 (44G+512M)
+    local hot_offset=$((base_seek + 4 * 128))  # copy 4 之后 (base_seek+512M)
     dd if=/dev/urandom of="${hot_file}" bs=1M count=16 2>/dev/null
     local hot_md5=$(md5sum "${hot_file}" | awk '{print $1}')
 

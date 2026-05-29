@@ -13,10 +13,12 @@ run_test() {
     echo -e "${C_INFO}  原理: 持续对同一 128MB 范围写入, 迫使 eMMC 内部反复重映射.${C_RESET}"
     echo -e "${C_INFO}  正常 eMMC 应能承受数百万次编程而无外部可见错误.${C_RESET}"
 
-    local hot_offset="26G"
+    local hot_offset=$(pct_offset 50)
     local hot_size="128M"
     local total_writes_mb=$((4 * 1024))    # 总写入 4GB (实际映射到同一小块物理区域)
     local bs="4k"
+
+    pct_check "T13" 52 || { warn "设备空间不足, 跳过 T13"; return; }
 
     step "热区写入压力 (目标: ${hot_size} 区域, 总写入 ~4GB)"
     progress "预计运行时间: 约 3-5 分钟 (取决于 eMMC 速度)..."

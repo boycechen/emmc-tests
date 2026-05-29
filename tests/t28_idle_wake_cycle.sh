@@ -14,12 +14,14 @@ run_test() {
     echo -e "${C_INFO}  如果 BKOPS 有 bug, 唤醒后首次读写会超时.${C_RESET}"
 
     local cycles=10
+    local base_pct=50
+    pct_check "T28" 60 || { warn "设备空间不足, 跳过 T28"; return; }
 
     step "空闲/唤醒循环 (${cycles} 次)"
     for ((c=1; c<=cycles; c++)); do
         progress "[${c}/${cycles}] 写入 256MB..."
         run_fio "t28_cycle_${c}" \
-            --name=t28_c${c} --filename="${EMMC_DEV}" --offset=$((48 + c))G --size=256M \
+            --name=t28_c${c} --filename="${EMMC_DEV}" --offset=$(pct_offset $((base_pct + c * 2))) --size=$(pct_size 2) \
             --direct=1 --ioengine=libaio --iodepth=32 --rw=write --bs=4k \
             --verify=crc32c --verify_state_save=0 --output=/dev/null 2>/dev/null || {
             fail "周期 ${c} 写入失败!"
@@ -32,7 +34,7 @@ run_test() {
 
         progress "唤醒后回读校验..."
         run_fio "t28_cycle_${c}_vfy" \
-            --name=t28_v${c} --filename="${EMMC_DEV}" --offset=$((48 + c))G --size=256M \
+            --name=t28_v${c} --filename="${EMMC_DEV}" --offset=$(pct_offset $((base_pct + c * 2))) --size=$(pct_size 2) \
             --direct=1 --ioengine=libaio --iodepth=16 --rw=read --bs=4k \
             --verify=crc32c --verify_only --verify_state_save=0 --output=/dev/null 2>/dev/null || {
             fail "周期 ${c} 唤醒后回读错误! — BKOPS/GC 可能异常!"

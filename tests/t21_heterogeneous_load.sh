@@ -18,7 +18,8 @@ run_test() {
     step "3 线程异质性负载 (180s)"
     progress "运行中 (约 3 分钟)... 异质性最高, 最易暴露调度 bug"
 
-    local base_offset="33G"
+    local base_pct=50
+    pct_check "T21" $((base_pct + 15)) || { warn "设备空间不足, 跳过 T21"; return; }
 
     # 使用 fio 的 3 个独立 job 定义 (每个 --name 开始一个新 job)
     if run_fio "t21_hetero" \
@@ -26,15 +27,15 @@ run_test() {
         --runtime=180 --time_based --group_reporting \
         \
         --name=t21_seqrd --filename="${EMMC_DEV}" \
-        --bs=1M --size=$(pct_size 3) --offset="${base_offset}" \
+        --bs=1M --size=$(pct_size 3) --offset=$(pct_offset ${base_pct}) \
         --rw=read --iodepth=8 \
         \
         --name=t21_tinywr --filename="${EMMC_DEV}" \
-        --bs=512 --size=512M --offset="35G" \
+        --bs=512 --size=512M --offset=$(pct_offset $((base_pct + 5))) \
         --rw=randwrite --iodepth=16 \
         \
         --name=t21_mix --filename="${EMMC_DEV}" \
-        --bs=4k --size=$(pct_size 2) --offset="36G" \
+        --bs=4k --size=$(pct_size 2) --offset=$(pct_offset $((base_pct + 8))) \
         --rw=randrw --rwmixread=70 --iodepth=32; then
         pass "异质性负载运行完毕, 无错误"
     else

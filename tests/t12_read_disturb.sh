@@ -13,15 +13,12 @@ run_test() {
     echo -e "${C_INFO}  原理: 反复读取同一 NAND block 会使周围 Cell 电荷泄露.${C_RESET}"
     echo -e "${C_INFO}  当读干扰累积到 ECC 无法纠正时, 数据会静默损坏.${C_RESET}"
 
-    local target_offset="25G"
+    local target_offset=$(pct_offset 50)
     local target_size="64M"
     local runtime=900
 
-    # 确保设备容量足够 (硬编码偏移 25G + 64M)
-    if [ "${DEVICE_SIZE_MB}" -gt 0 ] && [ "${DEVICE_SIZE_MB}" -lt 26000 ]; then
-        warn "设备仅 ${DEVICE_SIZE_MB}MB (<26GB), 不足以运行 T12 (需 25G+64M), 跳过"
-        return
-    fi
+    # 确保设备容量足够 (动态偏移)
+    pct_check "T12" 52 || { warn "设备空间不足, 跳过 T12"; return; }
 
     step "初始写入参考数据 (64MB)"
     progress "写入到 offset=${target_offset}..."
@@ -31,7 +28,7 @@ run_test() {
     local ref_md5=$(md5sum "${ref_file}" | awk '{print $1}')
 
     # seek=25G: 将参考数据写到与读干扰相同的偏移
-    dd if="${ref_file}" of="${EMMC_DEV}" bs=1M count=64 seek=25G oflag=direct 2>/dev/null || {
+    dd if="${ref_file}" of="${EMMC_DEV}" bs=1M count=64 seek="${target_offset}" oflag=direct 2>/dev/null || {
         fail "参考数据写入失败"
         rm -f "${ref_file}"
         return
@@ -65,7 +62,7 @@ run_test() {
     sync; echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
 
     local verify_file="${LOGDIR}/t12_verify.dat"
-    dd if="${EMMC_DEV}" of="${verify_file}" bs=1M count=64 seek=25G iflag=direct 2>/dev/null || {
+    dd if="${EMMC_DEV}" of="${verify_file}" bs=1M count=64 seek="${target_offset}" iflag=direct 2>/dev/null || {
         fail "回读失败!"
         rm -f "${ref_file}" "${verify_file}"
         return
