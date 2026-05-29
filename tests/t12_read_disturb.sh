@@ -17,14 +17,18 @@ run_test() {
     local target_size="64M"
     local runtime=900
 
+    # 确保设备容量足够
+    pct_check "T12" 27 || { warn "设备空间不足, 跳过 T12"; return; }
+
     step "初始写入参考数据 (64MB)"
     progress "写入到 offset=${target_offset}..."
-    # 先写入已知数据
+    # 先写入已知数据 — 与读干扰同一区域
     local ref_file="${LOGDIR}/t12_ref.dat"
     dd if=/dev/urandom of="${ref_file}" bs=1M count=64 2>/dev/null
     local ref_md5=$(md5sum "${ref_file}" | awk '{print $1}')
 
-    dd if="${ref_file}" of="${EMMC_DEV}" bs=1M count=64 seek=0 oflag=direct 2>/dev/null || {
+    # seek=25G: 将参考数据写到与读干扰相同的偏移
+    dd if="${ref_file}" of="${EMMC_DEV}" bs=1M count=64 seek=25G oflag=direct 2>/dev/null || {
         fail "参考数据写入失败"
         rm -f "${ref_file}"
         return
@@ -58,7 +62,7 @@ run_test() {
     sync; echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
 
     local verify_file="${LOGDIR}/t12_verify.dat"
-    dd if="${EMMC_DEV}" of="${verify_file}" bs=1M count=64 iflag=direct 2>/dev/null || {
+    dd if="${EMMC_DEV}" of="${verify_file}" bs=1M count=64 seek=25G iflag=direct 2>/dev/null || {
         fail "回读失败!"
         rm -f "${ref_file}" "${verify_file}"
         return

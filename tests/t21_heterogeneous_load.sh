@@ -20,23 +20,21 @@ run_test() {
 
     local base_offset="33G"
 
-    # 使用 fio 的 numjobs + 显式分配 offset/size
+    # 使用 fio 的 3 个独立 job 定义 (每个 --name 开始一个新 job)
     if run_fio "t21_hetero" \
-        --name=t21_aio --filename="${EMMC_DEV}" \
-        --thread=1 \
-        --numjobs=3 \
-        --direct=1 \
-        --ioengine=libaio \
-        --group_reporting \
-        --runtime=180 --time_based \
+        --thread=1 --direct=1 --ioengine=libaio \
+        --runtime=180 --time_based --group_reporting \
         \
+        --name=t21_seqrd --filename="${EMMC_DEV}" \
         --bs=1M --size=$(pct_size 3) --offset="${base_offset}" \
         --rw=read --iodepth=8 \
         \
-        --bs=512 --size=512M --offset="${base_offset}+2G" \
+        --name=t21_tinywr --filename="${EMMC_DEV}" \
+        --bs=512 --size=512M --offset="35G" \
         --rw=randwrite --iodepth=16 \
         \
-        --bs=4k --size=$(pct_size 2) --offset="${base_offset}+3G" \
+        --name=t21_mix --filename="${EMMC_DEV}" \
+        --bs=4k --size=$(pct_size 2) --offset="36G" \
         --rw=randrw --rwmixread=70 --iodepth=32; then
         pass "异质性负载运行完毕, 无错误"
     else

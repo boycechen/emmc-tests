@@ -25,16 +25,19 @@ run_test() {
 
     # 写入 4 份相同数据到不同区域
     info "写入 4 份副本到不同区域 (等待时间递增验证)"
+    # 44G / 1M = 45056 块
+    local base_seek=$((44 * 1024))
     for copy in 1 2 3 4; do
-        local off="${data_offset}+$(( (copy-1) * 128 ))M"
-        dd if="${ref_file}" of="${EMMC_DEV}" bs=1M count=64 seek=0 oflag=direct 2>/dev/null || {
+        local seek_val=$((base_seek + (copy-1) * 128))
+        local off_desc="${data_offset}+$(( (copy-1) * 128 ))M"
+        dd if="${ref_file}" of="${EMMC_DEV}" bs=1M count=64 seek="${seek_val}" oflag=direct 2>/dev/null || {
             fail "副本 ${copy} 写入失败"; rm -f "${ref_file}"; return
         }
     done
     sync; echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
     pass "参考数据已写入 (4 副本)"
 
-    # 分阶段回读
+    # 分阶段回读 — 每阶段读不同的副本
     local intervals=(10 60 300)
     local stage=1
 
@@ -42,9 +45,13 @@ run_test() {
         info "等待 ${interval}s..."
         sleep "${interval}"
 
-        step "Test 24b: 阶段 ${stage} — 写入后 ${interval}s 回读"
+        # 每阶段读对应的副本: stage 1→copy 1, stage 2→copy 2, stage 3→copy 3
+        local read_seek=$((base_seek + (stage-1) * 128))
+        local read_desc="${data_offset}+$(( (stage-1) * 128 ))M"
+
+        step "Test 24b: 阶段 ${stage} — 写入后 ${interval}s 回读 (offset=${read_desc})"
         local vfy_file="${LOGDIR}/t24_vfy_${interval}s.dat"
-        dd if="${EMMC_DEV}" of="${vfy_file}" bs=1M count=64 iflag=direct 2>/dev/null || {
+        dd if="${EMMC_DEV}" of="${vfy_file}" bs=1M count=64 skip="${read_seek}" iflag=direct 2>/dev/null || {
             fail "阶段 ${stage}: 回读失败!"; rm -f "${vfy_file}"; ((stage++)); continue
         }
         local vfy_md5=$(md5sum "${vfy_file}" | awk '{print $1}')

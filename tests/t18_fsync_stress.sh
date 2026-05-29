@@ -16,10 +16,13 @@ run_test() {
     local mount_pt="/tmp/emmc_mnt_${TIMESTAMP}"
     local part_dev=""
 
-    # 找分区
-    [[ -b "${EMMC_DEV}p1" ]] && part_dev="${EMMC_DEV}p1"
-    [[ -b "${EMMC_DEV}p" ]] && part_dev="${EMMC_DEV}p"
-    [ -z "${part_dev}" ] && part_dev="${EMMC_DEV}"
+    # 查找可用分区: mmcblk0p1 / nvme0n1p1 等
+    for pn in 1 2 3; do
+        if [[ -b "${EMMC_DEV}p${pn}" ]]; then
+            part_dev="${EMMC_DEV}p${pn}"
+            break
+        fi
+    done
 
     mkdir -p "${mount_pt}"
 
