@@ -4,7 +4,7 @@
 # ─── 全局状态 ──────────────────────────────────────────────────
 PASS=0; FAIL=0; WARN=0; TOTAL=0
 HAS_MMC_UTILS=false
-HAS_FIO=false
+HAS_FIO=false  # 由 emmc_test.sh main() 在检测 fio 后设为 true
 [ -z "${LOGDIR}" ] && LOGDIR="/tmp/emmc_deep_test_$(date +%s)"
 
 # ─── 测试结果追踪 ──────────────────────────────────────────────

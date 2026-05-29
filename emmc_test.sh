@@ -243,6 +243,7 @@ main() {
 
     # 全局工具检测
     command -v fio &>/dev/null || { echo -e "${C_FAIL}错误: 未找到 fio, 请安装: sudo apt install fio${C_RESET}"; exit 1; }
+    HAS_FIO=true
     command -v mmc &>/dev/null && HAS_MMC_UTILS=true
     command -v bc &>/dev/null || echo -e "${C_WARN}提示: bc 未安装, 建议: sudo apt install bc${C_RESET}"
 
