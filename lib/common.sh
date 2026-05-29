@@ -17,35 +17,25 @@ declare -a _TR_ORDER  # ordered list of test ids run
 
 # ─── 全宽居中文 ──────────────────────────────────────────────
 # 用法: center_text "文字" [颜色变量]
-# 不换行，在终端宽度内居中显示文本（兼容中英文混合）
+# 在终端宽度内居中显示文本（兼容中英文混合）
 center_text() {
     local text="${1}"
     local color="${2:-${C_TITLE}}"
     local cols
     cols=$(tput cols 2>/dev/null || echo 80)
 
-    # 估算可视宽度: 中文3字节显示2列, · 占2字节显示1列
-    local byte_len=${#text}
-    local i=0 wide=0 narrow=0
-    while (( i < byte_len )); do
+    # 计算可视宽度: ASCII 占1列, 非ASCII(中文等) 占2列
+    local vis=0 i=0 len=${#text}
+    while (( i < len )); do
         local c="${text:$i:1}"
-        local byte
-        byte=$(printf '%d' "'$c" 2>/dev/null)
-        if (( byte > 255 )); then
-            # Unicode 码点 — 一个完整的中文字符
-            ((wide++)); ((i++))
-        elif (( byte >= 224 && byte < 240 )); then
-            # UTF-8 3字节序列 (中文) — 3字节→2列
-            ((wide++)); ((i+=3))
-        elif (( byte >= 192 && byte < 224 )); then
-            # UTF-8 2字节序列 (如 · 中点) — 2字节→1列
-            ((narrow++)); ((i+=2))
+        if (( $(printf '%d' "'$c" 2>/dev/null) > 127 )); then
+            ((vis += 2))
         else
-            ((i++))
+            ((vis++))
         fi
+        ((i++))
     done
-    # 每个中文多1字节, 每个中点也多1字节
-    local vis=$((byte_len - wide - narrow))
+
     local pad=$(( (cols - vis) / 2 ))
     (( pad < 0 )) && pad=0
     printf -v spaces "%*s" "$pad" ""
