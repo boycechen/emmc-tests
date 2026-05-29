@@ -15,6 +15,17 @@ declare -A _TR_FAIL   # test_id -> fail count
 declare -A _TR_WARN   # test_id -> warn count
 declare -a _TR_ORDER  # ordered list of test ids run
 
+# ─── 全宽居中文 ──────────────────────────────────────────────
+# 用法: center_text "文字" [颜色变量]
+# 不换行，在终端宽度内居中显示文本
+center_text() {
+    local text="${1}"
+    local color="${2:-${C_TITLE}}"
+    local cols
+    cols=$(tput cols 2>/dev/null || echo 80)
+    echo -e "${color}$(printf "%*s" $(( (cols + ${#text}) / 2 )) "${text}")${C_RESET}"
+}
+
 # ─── 全宽装饰线 ──────────────────────────────────────────────────
 # 用法: full_line [颜色变量] [装饰字符]
 full_line() {
