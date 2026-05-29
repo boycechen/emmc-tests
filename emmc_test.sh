@@ -59,8 +59,8 @@ list_tests() {
     echo -e "\n${C_TITLE}可用测试项目:${C_RESET}"
     echo -e "${C_INFO}────────────────────────────────────────────────${C_RESET}"
     for id in "${TEST_IDS[@]}"; do
-        printf "  ${C_STEP}%-6s${C_RESET} %-30s ${C_INFO}%-s${C_RESET}\n" \
-            "${id}" "${TEST_MAP[$id]}" "${TEST_DESC_MAP[$id]}"
+        echo -e "  ${C_STEP}${id}${C_RESET}  ${TEST_MAP[$id]}"
+        echo -e "       ${C_INFO}${TEST_DESC_MAP[$id]}${C_RESET}"
     done
     echo -e "${C_INFO}────────────────────────────────────────────────${C_RESET}"
     echo -e "  ${C_STEP}--run-all${C_RESET}  运行全部测试"
