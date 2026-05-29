@@ -150,11 +150,9 @@ run_all() {
 interactive_menu() {
     while true; do
         clear
-        echo -e "${C_TITLE}══════════════════════════════════════════════════${C_RESET}"
-        echo -e "${C_TITLE}  eMMC Deep Stress Test Suite v3.0${C_RESET}"
-        echo -e "${C_TITLE}  模块化 · 可扩展 · fio 驱动${C_RESET}"
+        center_line "eMMC Deep Stress Test Suite v3.0" "" ""
         echo -e "${C_TITLE}  设备: ${EMMC_DEV:-未选择}${C_RESET}"
-        echo -e "${C_TITLE}══════════════════════════════════════════════════${C_RESET}"
+        center_line "模块化 · 可扩展 · fio 驱动" "${C_INFO}" "─"
         echo "  ${C_PROMPT}测试项目:${C_RESET}"
         echo ""
 

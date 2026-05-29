@@ -8,10 +8,8 @@ DEVICE_SIZE_BYTES=0
 
 select_device() {
     clear
-    echo -e "${C_TITLE}══════════════════════════════════════════════════${C_RESET}"
-    echo -e "${C_TITLE}  eMMC Deep Stress Test Suite v3.0${C_RESET}"
-    echo -e "${C_TITLE}  模块化 · 可扩展 · fio 驱动${C_RESET}"
-    echo -e "${C_TITLE}══════════════════════════════════════════════════${C_RESET}"
+    center_line "eMMC Deep Stress Test Suite v3.0" "" ""
+    center_line "模块化 · 可扩展 · fio 驱动" "${C_INFO}" "─"
 
     echo -e "\n${C_INFO}已检测: fio=${HAS_FIO} mmc-utils=${HAS_MMC_UTILS}${C_RESET}"
     [ "${HAS_MMC_UTILS}" = false ] && \
